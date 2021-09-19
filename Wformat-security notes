@@ -1,0 +1,15 @@
+printf(kFlags[i].name); -> fputs(kFlags[i].name, stdout);
+
+fprintf(stderr, text); -> fputs(text, stderr);
+fprintf(out, prompt); -> fputs(prompt, out);
+fprintf( stderr, "----------\n" ); -> fputs("----------\n", stderr);
+fprintf(error ? stderror : stdout), kUsage); -> 
+fprintf(stderr, B_TRANSLATE("display a load/save file panel\n")); -> fprintf(stderr, "%s", B_TRANSLATE("display a load/save file panel\n"));
+
+debug_printf(buffer) -> debug_printf("%s", buffer)
+
+dprintf(buffer); -> dprintf("%s", buffer);
+
+sprintf(temp, constStack.top().c_str()); -> sprintf(temp, "%s", constStack.top().c_str());
+sprintf(msg, "CRTC: setting DPMS: "); -> strlcpy(msg, "CRTC: setting DPMS: ", sizeof(msg));
+sprintf(msg, "%sdisplay on, ", msg); -> strlcat(msg, "display on, ", sizeof(msg));
