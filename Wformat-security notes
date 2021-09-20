@@ -10,6 +10,9 @@ debug_printf(buffer) -> debug_printf("%s", buffer)
 
 dprintf(buffer); -> dprintf("%s", buffer);
 
-sprintf(temp, constStack.top().c_str()); -> sprintf(temp, "%s", constStack.top().c_str());
 sprintf(msg, "CRTC: setting DPMS: "); -> strlcpy(msg, "CRTC: setting DPMS: ", sizeof(msg));
-sprintf(msg, "%sdisplay on, ", msg); -> strlcat(msg, "display on, ", sizeof(msg));
+
+
+
+sprintf(temp, constStack.top().c_str()); -> sprintf(temp, "%s", constStack.top().c_str()); \\works, but old way
+sprintf(msg, "%sdisplay on, ", msg); -> strlcat(msg, "display on, ", sizeof(msg));  \\not sure
