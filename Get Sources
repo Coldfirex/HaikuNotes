@@ -1,10 +1,20 @@
 Create folder (for ex. 'sources' on Desktop)
 Open Terminal under sources
 
-Build-tools (if you want to create an ISO):
+Download build-tools (if you want to create an ISO):
 git clone https://review.haiku-os.org/buildtools
 mkdir generated.x86_64; cd generated.x86_64
 ./configure --cross-tools-source ../buildtools --build-cross-tools x86_64
 
-To pull down files:
+Download Haiku source:
 git clone https://review.haiku-os.org/haiku
+
+
+
+
+Download Haiku source if you intend to submit changes upstream:
+git clone "ssh://Coldfirex@git.haiku-os.org/haiku"
+scp -p Coldfirex@git.haiku-os.org:hooks/commit-msg "haiku/.git/hooks/"
+
+cd haiku
+git remote set-url origin ssh://Coldfirex@git.haiku-os.org/haiku (Update your existing copy of the source to use the commiter access:)
