@@ -1,0 +1,10 @@
+Create folder (for ex. 'sources' on Desktop)
+Open Terminal under sources
+
+Build-tools (if you want to create an ISO):
+git clone https://review.haiku-os.org/buildtools
+mkdir generated.x86_64; cd generated.x86_64
+./configure --cross-tools-source ../buildtools --build-cross-tools x86_64
+
+To pull down files:
+git clone https://review.haiku-os.org/haiku
