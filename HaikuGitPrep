@@ -1,0 +1,13 @@
+git config --global user.name "Coldfirex"
+git config --global user.email "sakison@gmail.com"
+
+ssh-keygen -t rsa -C “sakison@gmail.com”
+Accepting defaults to questions asked appears to be fine.
+Upload generated key (/boot/home/config/settiongs/ssh/id_rsa.pub) to Gerrit: https://review.haiku-os.org/settings/#SSHKeys
+
+Verify SSH is running via: eval ‘ssh-agent -s’
+Add key to SSH: ssh-add /boot/home/config/settings/ssh/id_rsa
+
+Change directory into 'haiku' folder that was downloaded from github earlier
+
+Verify git connection: 'git remote -v'
