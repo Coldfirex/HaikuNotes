@@ -1,4 +1,6 @@
 #Run stress-ng through all tests, with verbose output, for 1 minute each.  Exclude the madvise test and it just stalls and never finishes.
 stress-ng --seq 0 --v -t 1m -x madvise
 
-09/22/2023 - Can make it through all tests with above command w/o crashing Haiku or KDL.  A few of the test do crash, but not the system itself.
+09/22/2023:
+Can make it through all tests with above command w/o crashing Haiku or KDL.  A few of the test do crash, but not the system itself.
+@waddlesplash> our madvise mostly is a no-op
