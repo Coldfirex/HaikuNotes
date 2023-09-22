@@ -1,0 +1,2 @@
+#Run stress-ng through all tests, with verbose output, for 1 minute each
+stress-ng --seq 0 --v -t 1m
