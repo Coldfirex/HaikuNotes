@@ -9,3 +9,4 @@ Can make it through all tests with above command w/o crashing Haiku or KDL.  A f
 Stress-ng updated to latest version (0.16.0.5).  Have gotten at least two KDLs attempting to run the same tests.  Tickets opened
 https://dev.haiku-os.org/ticket/18601
 https://dev.haiku-os.org/ticket/18602
+8/9/2024 - Added serial output to 18601 with latest hrev.  
