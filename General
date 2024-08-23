@@ -1,0 +1,2 @@
+Watch syslog while something is happening:
+Open terminal then: tail -f /var/log/syslog
