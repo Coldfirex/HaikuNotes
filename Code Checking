@@ -1,0 +1,24 @@
+https://nrk.neocities.org/articles/c-static-analyzers
+
+https://cppcheck.sourceforge.io/
+
+https://developers.redhat.com/articles/2022/04/12/state-static-analysis-gcc-12-compiler#
+
+https://clang.llvm.org/docs/analyzer/user-docs/CommandLineUsage.html
+https://llvm.org/devmtg/2020-09/slides/Using_the_clang_static_ananalyzer_to_find_bugs.pdf
+"scan-build is basically just a wrapper around "clang --analyze" that allows it to run on multiple files and generate a summary report at the end."
+
+clang --analyze source.c
+
+Runs the analyzer on source.c, saves an HTML report
+clang --analyze source.c -analyzer-output=html -o <output-dir>
+
+Runs the analyzer on source.c, brings up an HTML report:
+scan-build -V clang -c source.c
+
+gcc -fanalyzer
+
+
+
+cppcheck -j$(nproc) --enable=portability src/*.c
+The -j flag enables multiple thread, which can speed up the process. And the "portability" flag enables some interesting portability warnings that other static-analyzers often miss.
