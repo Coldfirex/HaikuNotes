@@ -1,0 +1,5 @@
+https://www.haiku-os.org/guides/building/jam
+
+jam -j4 -q AboutSystem
+
+CC=clang CXX=clang++
