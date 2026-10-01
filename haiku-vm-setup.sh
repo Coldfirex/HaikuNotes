@@ -52,8 +52,13 @@ if ! ping -c 1 -W 5 haiku-os.org >/dev/null 2>&1; then
 fi
 
 say "Set the password for ${USER_NAME}"
-printf 'SSH will use this password. Type it twice at the prompt.\n'
-passwd || die "passwd failed"
+if [ -f "${MARKER}.passwd" ]; then
+	printf 'password already set on an earlier run; skipping\n'
+else
+	printf 'SSH will use this password. Type it twice at the prompt.\n'
+	passwd || die "passwd failed"
+	date > "${MARKER}.passwd"
+fi
 
 say "Make sure the sshd account exists"
 if ! grep -q '^sshd:' /etc/passwd 2>/dev/null; then
@@ -94,23 +99,30 @@ say "Install software updates"
 pkgman full-sync -y || die "pkgman full-sync failed"
 
 say "Install development packages"
-# jam, gcc, make, bison, flex, and the system headers ship in a normal
-# nightly/release image. These cover building the Haiku tree on Haiku
-# (https://www.haiku-os.org/guides/building/pre-reqs/) plus the usual extras.
-DEV_PKGS="haiku_devel git openssh cmd:python3 cmd:xorriso devel:libzstd \
-	cmd:gcc cmd:g++ cmd:jam cmd:make cmd:bison cmd:flex cmd:nasm \
-	cmd:autoconf cmd:automake cmd:m4 cmd:gawk cmd:wget cmd:curl \
-	cmd:pkg-config cmd:cmake cmd:gdb cmd:less cmd:vim cmd:ssh"
+# Use cmd:/devel: provides. A bare name like "git" is not a package name
+# pkgman will resolve, and one miss fails the whole install.
+DEV_PKGS="haiku_devel cmd:git cmd:ssh cmd:sshd cmd:python3 cmd:xorriso \
+	devel:libzstd cmd:gcc cmd:g++ cmd:jam cmd:make cmd:bison cmd:flex \
+	cmd:nasm cmd:autoconf cmd:automake cmd:m4 cmd:gawk cmd:wget cmd:curl \
+	cmd:pkg-config cmd:cmake cmd:gdb cmd:less cmd:vim"
 
 # Secondary-arch headers, only if this image is a hybrid.
-if pkgman search -D devel:libzstd_x86 >/dev/null 2>&1; then
-	if pkgman search devel:libzstd_x86 2>/dev/null | grep -q libzstd_x86; then
-		DEV_PKGS="${DEV_PKGS} devel:libzstd_x86"
-	fi
+if pkgman search devel:libzstd_x86 2>/dev/null | grep -q libzstd_x86; then
+	DEV_PKGS="${DEV_PKGS} devel:libzstd_x86"
 fi
 
-# shellcheck disable=SC2086
-pkgman install -y $DEV_PKGS || die "development package install failed"
+failed=""
+for pkg in $DEV_PKGS; do
+	printf 'install %s\n' "$pkg"
+	if ! pkgman install -y "$pkg"; then
+		printf 'warning: no match for %s\n' "$pkg"
+		failed="${failed} ${pkg}"
+	fi
+done
+if [ -n "$failed" ]; then
+	printf 'warning: skipped:%s\n' "$failed"
+fi
+command -v git >/dev/null 2>&1 || die "git is still missing"
 
 say "Set timezone to America/Chicago (US Central)"
 # QEMU's hardware clock is UTC. Tell Haiku that, or the offset is applied twice.
