@@ -226,10 +226,17 @@ if command -v Time >/dev/null 2>&1; then
 fi
 
 say "Install Firefox"
-if ! pkgman install -y firefox; then
-	printf 'firefox package failed, trying firefox_esr\n'
-	pkgman install -y firefox_esr || die "could not install firefox or firefox_esr"
-fi
+# Firefox is 64-bit only. A 32-bit install has no firefox package, and we
+# do not want the ESR build as a second copy on 64-bit.
+arch=$(uname -m)
+case "$arch" in
+	x86_64)
+		pkgman install -y firefox || die "could not install firefox"
+		;;
+	*)
+		printf 'skipping firefox on %s\n' "$arch"
+		;;
+esac
 
 date > "$MARKER"
 
