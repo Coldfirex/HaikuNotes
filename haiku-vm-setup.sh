@@ -131,37 +131,38 @@ cat > /tmp/set-tz.cpp << 'EOF'
 #include <stdio.h>
 #include <string.h>
 
-#include <MutableLocaleRoster.h>
+#include <File.h>
+#include <FindDirectory.h>
+#include <Message.h>
+#include <Path.h>
 #include <TimeZone.h>
-#include <syscalls.h>
 
 int
 main()
 {
 	const char* id = "America/Chicago";
 	BTimeZone zone(id);
+	BMessage settings;
+	status_t status = settings.AddString("timezone", id);
+	if (status != B_OK)
+		return 1;
 
-	status_t status = BPrivate::MutableLocaleRoster::Default()
-		->SetDefaultTimeZone(zone);
+	BPath path;
+	status = find_directory(B_USER_SETTINGS_DIRECTORY, &path, true);
+	if (status != B_OK)
+		return 1;
+	path.Append("Time settings");
+
+	BFile file(path.Path(), B_CREATE_FILE | B_ERASE_FILE | B_WRITE_ONLY);
+	if (file.InitCheck() != B_OK)
+		return 1;
+	status = settings.Flatten(&file);
 	if (status != B_OK) {
-		fprintf(stderr, "SetDefaultTimeZone failed: %s\n", strerror(status));
+		fprintf(stderr, "could not write Time settings: %s\n", strerror(status));
 		return 1;
 	}
 
-	status = _kern_set_timezone(zone.OffsetFromGMT(), zone.ID().String(),
-		zone.ID().Length());
-	if (status != B_OK) {
-		fprintf(stderr, "kernel set_timezone failed: %s\n", strerror(status));
-		return 1;
-	}
-
-	status = _kern_set_real_time_clock_is_gmt(true);
-	if (status != B_OK) {
-		fprintf(stderr, "RTC-is-GMT failed: %s\n", strerror(status));
-		return 1;
-	}
-
-	printf("timezone %s, offset %d seconds\n", zone.ID().String(),
+	printf("wrote Time settings %s, offset %d seconds\n", id,
 		(int)zone.OffsetFromGMT());
 	return 0;
 }
@@ -171,6 +172,54 @@ if ! g++ -Wall -o /tmp/set-tz /tmp/set-tz.cpp -lbe; then
 fi
 /tmp/set-tz || die "could not set timezone"
 rm -f /tmp/set-tz /tmp/set-tz.cpp
+
+# Apply it now, not only after the next login. These headers ship with
+# haiku_devel and are not on the default include path.
+if [ -f /boot/system/develop/headers/private/system/syscalls.h ]; then
+	cat > /tmp/set-tz-kern.cpp << 'EOF'
+#include <stdio.h>
+#include <string.h>
+
+#include <TimeZone.h>
+#include <private/locale/MutableLocaleRoster.h>
+#include <private/system/syscalls.h>
+
+int
+main()
+{
+	const char* id = "America/Chicago";
+	BTimeZone zone(id);
+	status_t status = BPrivate::MutableLocaleRoster::Default()
+		->SetDefaultTimeZone(zone);
+	if (status != B_OK) {
+		fprintf(stderr, "SetDefaultTimeZone failed: %s\n", strerror(status));
+		return 1;
+	}
+	status = _kern_set_timezone(zone.OffsetFromGMT(), zone.ID().String(),
+		zone.ID().Length());
+	if (status != B_OK) {
+		fprintf(stderr, "kernel set_timezone failed: %s\n", strerror(status));
+		return 1;
+	}
+	status = _kern_set_real_time_clock_is_gmt(true);
+	if (status != B_OK) {
+		fprintf(stderr, "RTC-is-GMT failed: %s\n", strerror(status));
+		return 1;
+	}
+	printf("kernel timezone %s, offset %d seconds\n", zone.ID().String(),
+		(int)zone.OffsetFromGMT());
+	return 0;
+}
+EOF
+	if g++ -Wall -o /tmp/set-tz-kern /tmp/set-tz-kern.cpp -lbe; then
+		/tmp/set-tz-kern || printf 'warning: kernel timezone not applied yet\n'
+	else
+		printf 'warning: private headers present but kernel helper did not build\n'
+	fi
+	rm -f /tmp/set-tz-kern /tmp/set-tz-kern.cpp
+else
+	printf 'warning: haiku_devel private headers missing; timezone applies after reboot\n'
+fi
 
 if command -v Time >/dev/null 2>&1; then
 	Time --update || printf 'warning: NTP update failed; continuing\n'
